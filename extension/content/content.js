@@ -10,13 +10,14 @@
 
   /**
    * Get all potential size guide images from the page
+   * Converts thumbnail URLs to full-resolution URLs (like Python script does)
    */
   function getPageImages() {
     const images = document.querySelectorAll('img');
     const yupooImages = [];
 
     images.forEach(img => {
-      const src = img.src || img.dataset.src || img.dataset.originSrc || '';
+      let src = img.src || img.dataset.src || img.dataset.originSrc || '';
 
       // Only include Yupoo product photos (not logos, icons, etc.)
       if (src.includes('photo.yupoo.com')) {
@@ -25,6 +26,11 @@
         const height = img.naturalHeight || img.offsetHeight || 0;
 
         if (width >= 100 && height >= 100) {
+          // Convert thumbnail URLs to full-resolution URLs
+          // This matches what the Python script does for better OCR accuracy
+          src = src.replace(/\/(small|thumb|square|medium)\./gi, '/big.');
+          src = src.replace(/_small\.|_thumb\.|_min\./gi, '.');
+
           yupooImages.push({
             src: src,
             width: width,

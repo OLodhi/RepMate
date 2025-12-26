@@ -58,6 +58,7 @@ module.exports = async (req, res) => {
     formData.append('language', 'chs'); // Chinese Simplified (also detects English)
     formData.append('isOverlayRequired', 'false');
     formData.append('scale', 'true');
+    formData.append('isTable', 'true'); // Enable table detection for size charts
     formData.append('OCREngine', '2'); // Engine 2 is better for Asian languages
     formData.append('base64Image', base64Data);
 
