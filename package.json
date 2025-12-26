@@ -15,7 +15,5 @@
   ],
   "author": "",
   "license": "MIT",
-  "dependencies": {
-    "tesseract.js": "^5.0.4"
-  }
+  "dependencies": {}
 }
