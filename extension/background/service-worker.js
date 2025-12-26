@@ -3,10 +3,11 @@
  * Handles background tasks and message passing
  */
 
-// API base URL - update this after deploying to Vercel
-const API_BASE = 'https://repmate.vercel.app';
-// For local development:
-// const API_BASE = 'http://localhost:3000';
+// API base URL - Production deployment
+const API_BASE = 'https://repmate-ten.vercel.app';
+
+// For development/preview deployments, update this URL:
+// const API_BASE = 'https://repmate-git-development-omar-lodhis-projects.vercel.app';
 
 /**
  * Handle messages from content script or popup
