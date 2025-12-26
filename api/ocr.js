@@ -35,6 +35,7 @@ module.exports = async (req, res) => {
     formData.append('isOverlayRequired', 'false');
     formData.append('scale', 'true');
     formData.append('OCREngine', '2'); // Engine 2 is better for Asian languages
+    formData.append('filetype', 'JPG'); // Explicitly set file type
 
     if (imageBase64) {
       formData.append('base64Image', imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`);
