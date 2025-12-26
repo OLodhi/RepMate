@@ -86,28 +86,43 @@
    * Check if an image might be a size guide
    */
   function checkImage(img) {
-    // Skip tiny images
-    if (img.naturalWidth < 200 || img.naturalHeight < 150) return;
-
     // Skip already processed
     if (img.dataset.repmateChecked) return;
     img.dataset.repmateChecked = 'true';
 
-    // Check image URL/alt for size-related keywords
-    const src = img.src || img.dataset.src || '';
-    const alt = img.alt || '';
-    const combined = (src + alt).toLowerCase();
+    // Check image URL for Yupoo photo URLs
+    const src = img.src || img.dataset.src || img.dataset.originSrc || '';
 
-    // Size guide images on Yupoo are often in PNG format or have certain URL patterns
-    const mightBeSizeGuide = combined.includes('size') ||
-      combined.includes('chart') ||
-      combined.includes('guide') ||
-      src.includes('.png') ||
-      src.includes('photo.yupoo.com');
-
-    if (mightBeSizeGuide || true) { // For now, add button to all large images
-      addScanButton(img);
+    // Only process Yupoo product images
+    if (!src.includes('photo.yupoo.com') && !src.includes('yupoo.com')) {
+      return;
     }
+
+    // Wait for image to load before adding button
+    if (img.complete && img.naturalWidth > 0) {
+      tryAddButton(img, src);
+    } else {
+      img.addEventListener('load', () => tryAddButton(img, src), { once: true });
+    }
+  }
+
+  /**
+   * Try to add button once image is ready
+   */
+  function tryAddButton(img, src) {
+    const displayWidth = img.offsetWidth || img.clientWidth || img.naturalWidth;
+    const displayHeight = img.offsetHeight || img.clientHeight || img.naturalHeight;
+
+    console.log('[RepMate] Image size:', displayWidth, 'x', displayHeight, 'src:', src.substring(0, 50));
+
+    // Skip tiny images (thumbnails, icons)
+    if (displayWidth < 100 || displayHeight < 100) {
+      console.log('[RepMate] Skipping small image');
+      return;
+    }
+
+    console.log('[RepMate] Adding button to image:', src.substring(0, 60));
+    addScanButton(img);
   }
 
   /**
@@ -115,32 +130,64 @@
    */
   function addScanButton(img) {
     // Skip if already has button
-    if (img.parentElement.querySelector('.repmate-scan-btn')) return;
+    if (img.dataset.repmateButtonAdded) return;
+    img.dataset.repmateButtonAdded = 'true';
 
-    // Create wrapper if needed
-    let wrapper = img.parentElement;
-    if (wrapper.tagName !== 'DIV' || !wrapper.classList.contains('repmate-wrapper')) {
-      wrapper = document.createElement('div');
-      wrapper.className = 'repmate-wrapper';
-      wrapper.style.position = 'relative';
-      wrapper.style.display = 'inline-block';
-      img.parentElement.insertBefore(wrapper, img);
-      wrapper.appendChild(img);
-    }
-
-    // Create scan button
+    // Create button
     const btn = document.createElement('button');
     btn.className = 'repmate-scan-btn';
-    btn.innerHTML = '📏 Check Size';
+    btn.innerHTML = '📏';
     btn.title = 'Analyze this size chart with RepMate';
+
+    // Function to position button
+    function positionButton() {
+      const rect = img.getBoundingClientRect();
+
+      // Only show if image is in viewport and has size
+      if (rect.width < 50 || rect.height < 50 || rect.bottom < 0 || rect.top > window.innerHeight) {
+        btn.style.display = 'none';
+        return;
+      }
+
+      btn.style.cssText = `
+        position: fixed !important;
+        top: ${rect.top + 8}px !important;
+        left: ${rect.right - 45}px !important;
+        z-index: 2147483647 !important;
+        padding: 8px 12px !important;
+        background: #007AFF !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-size: 16px !important;
+        cursor: pointer !important;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.5) !important;
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+      `;
+    }
+
+    // Initial position
+    positionButton();
+    document.body.appendChild(btn);
+    console.log('[RepMate] Button created and appended to body');
+
+    // Update position on scroll/resize
+    let scrollTimeout;
+    const updatePosition = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(positionButton, 10);
+    };
+    window.addEventListener('scroll', updatePosition, { passive: true });
+    window.addEventListener('resize', updatePosition, { passive: true });
 
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       analyzeImage(img, btn);
     });
-
-    wrapper.appendChild(btn);
   }
 
   /**
@@ -154,16 +201,19 @@
     try {
       // Get image URL
       const imageUrl = img.src || img.dataset.src;
+      console.log('[RepMate] Analyzing image:', imageUrl);
 
       if (!imageUrl) {
         throw new Error('Could not get image URL');
       }
 
       // Send to OCR API
+      console.log('[RepMate] Sending OCR request...');
       const ocrResult = await sendMessage({
         type: 'OCR_REQUEST',
         data: { imageUrl },
       });
+      console.log('[RepMate] OCR result:', ocrResult);
 
       if (!ocrResult.success) {
         throw new Error(ocrResult.error || 'OCR failed');
@@ -319,9 +369,12 @@
    * Send message to background script
    */
   function sendMessage(message) {
+    console.log('[RepMate] Sending message to background:', message.type);
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage(message, (response) => {
+        console.log('[RepMate] Got response from background:', response);
         if (chrome.runtime.lastError) {
+          console.error('[RepMate] Runtime error:', chrome.runtime.lastError);
           reject(new Error(chrome.runtime.lastError.message));
         } else {
           resolve(response);

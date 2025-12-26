@@ -13,8 +13,10 @@ let workerPromise = null;
 async function getWorker() {
   if (!workerPromise) {
     workerPromise = (async () => {
-      const worker = await Tesseract.createWorker('eng+chi_sim', 1, {
+      // Use English only for faster processing (Chinese will still be captured, just less accurately)
+      const worker = await Tesseract.createWorker('eng', 1, {
         logger: () => {}, // Suppress logs
+        cacheMethod: 'none', // Don't cache in serverless
       });
       return worker;
     })();
