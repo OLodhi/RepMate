@@ -28,6 +28,22 @@ module.exports = async (req, res) => {
       });
     }
 
+    // If we have a URL, fetch the image first and convert to base64
+    // This is needed because OCR.space can't always fetch images from external sites
+    let base64Data;
+    if (imageBase64) {
+      base64Data = imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
+    } else {
+      // Fetch the image and convert to base64
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+        throw new Error(`Failed to fetch image: ${imageResponse.status}`);
+      }
+      const imageBuffer = await imageResponse.arrayBuffer();
+      const base64 = Buffer.from(imageBuffer).toString('base64');
+      base64Data = `data:image/jpeg;base64,${base64}`;
+    }
+
     // Build form data for OCR.space API
     const formData = new URLSearchParams();
     formData.append('apikey', OCR_API_KEY);
@@ -35,13 +51,7 @@ module.exports = async (req, res) => {
     formData.append('isOverlayRequired', 'false');
     formData.append('scale', 'true');
     formData.append('OCREngine', '2'); // Engine 2 is better for Asian languages
-    formData.append('filetype', 'JPG'); // Explicitly set file type
-
-    if (imageBase64) {
-      formData.append('base64Image', imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`);
-    } else {
-      formData.append('url', imageUrl);
-    }
+    formData.append('base64Image', base64Data);
 
     // Call OCR.space API
     const ocrResponse = await fetch('https://api.ocr.space/parse/image', {
