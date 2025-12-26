@@ -35,7 +35,15 @@ module.exports = async (req, res) => {
       base64Data = imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
     } else {
       // Fetch the image and convert to base64
-      const imageResponse = await fetch(imageUrl);
+      // Use browser-like headers to avoid being blocked
+      const imageResponse = await fetch(imageUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': 'https://x.yupoo.com/',
+        },
+      });
       if (!imageResponse.ok) {
         throw new Error(`Failed to fetch image: ${imageResponse.status}`);
       }
