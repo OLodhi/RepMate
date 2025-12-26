@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RepMate</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>RepMate</h1>
+      <p class="subtitle">Yupoo Size Guide Helper</p>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="tops">Tops</button>
+      <button class="tab" data-tab="bottoms">Bottoms</button>
+      <button class="tab" data-tab="settings">Settings</button>
+    </nav>
+
+    <!-- Tops Measurements -->
+    <section id="tops" class="tab-content active">
+      <h2>Upper Body Measurements</h2>
+      <p class="hint">Enter your body measurements in cm</p>
+
+      <div class="form-group">
+        <label for="chest">Chest (circumference)</label>
+        <input type="number" id="chest" placeholder="e.g., 98" step="0.5">
+        <span class="unit">cm</span>
+      </div>
+
+      <div class="form-group">
+        <label for="shoulder">Shoulder Width</label>
+        <input type="number" id="shoulder" placeholder="e.g., 44" step="0.5">
+        <span class="unit">cm</span>
+      </div>
+
+      <div class="form-group">
+        <label for="sleeve">Sleeve Length</label>
+        <input type="number" id="sleeve" placeholder="e.g., 62" step="0.5">
+        <span class="unit">cm</span>
+      </div>
+
+      <div class="form-group">
+        <label for="topLength">Preferred Top Length</label>
+        <input type="number" id="topLength" placeholder="e.g., 70" step="0.5">
+        <span class="unit">cm</span>
+      </div>
+    </section>
+
+    <!-- Bottoms Measurements -->
+    <section id="bottoms" class="tab-content">
+      <h2>Lower Body Measurements</h2>
+      <p class="hint">Enter your body measurements in cm</p>
+
+      <div class="form-group">
+        <label for="waist">Waist (circumference)</label>
+        <input type="number" id="waist" placeholder="e.g., 82" step="0.5">
+        <span class="unit">cm</span>
+      </div>
+
+      <div class="form-group">
+        <label for="hip">Hip (circumference)</label>
+        <input type="number" id="hip" placeholder="e.g., 98" step="0.5">
+        <span class="unit">cm</span>
+      </div>
+
+      <div class="form-group">
+        <label for="inseam">Inseam Length</label>
+        <input type="number" id="inseam" placeholder="e.g., 78" step="0.5">
+        <span class="unit">cm</span>
+      </div>
+
+      <div class="form-group">
+        <label for="thigh">Thigh (circumference)</label>
+        <input type="number" id="thigh" placeholder="e.g., 56" step="0.5">
+        <span class="unit">cm</span>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="settings" class="tab-content">
+      <h2>Fit Preferences</h2>
+
+      <div class="form-group">
+        <label for="height">Height</label>
+        <input type="number" id="height" placeholder="e.g., 175" step="1">
+        <span class="unit">cm</span>
+      </div>
+
+      <div class="form-group">
+        <label for="weight">Weight</label>
+        <input type="number" id="weight" placeholder="e.g., 70" step="1">
+        <span class="unit">kg</span>
+      </div>
+
+      <h3>Baggy Fit Settings</h3>
+      <p class="hint">How should "baggy fit" be calculated?</p>
+
+      <div class="form-group">
+        <label for="baggyType">Baggy Fit Method</label>
+        <select id="baggyType">
+          <option value="size">Size increment (+1 size)</option>
+          <option value="cm">Extra centimeters</option>
+          <option value="percent">Percentage larger</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="baggyValueGroup">
+        <label for="baggyValue">Value</label>
+        <input type="number" id="baggyValue" value="1" min="1" max="20" step="1">
+        <span class="unit" id="baggyUnit">size(s)</span>
+      </div>
+    </section>
+
+    <footer>
+      <button id="saveBtn" class="btn primary">Save Measurements</button>
+      <div id="status" class="status"></div>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

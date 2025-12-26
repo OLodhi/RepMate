@@ -1,0 +1,262 @@
+/* RepMate Content Script Styles */
+
+/* Scan Button */
+.repmate-scan-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 6px 12px;
+  background: rgba(0, 122, 255, 0.95);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.repmate-scan-btn:hover {
+  background: rgba(0, 100, 220, 0.95);
+  transform: scale(1.05);
+}
+
+.repmate-scan-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Wrapper */
+.repmate-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Overlay */
+.repmate-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: repmateOverlayFadeIn 0.2s ease;
+}
+
+@keyframes repmateOverlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.repmate-overlay-content {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 420px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: repmateSlideUp 0.3s ease;
+}
+
+@keyframes repmateSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.repmate-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.repmate-close:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.repmate-overlay-content h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* Results Cards */
+.repmate-results {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.repmate-fit-card {
+  flex: 1;
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.repmate-fit-card.right {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border: 2px solid #4caf50;
+}
+
+.repmate-fit-card.baggy {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 2px solid #2196f3;
+}
+
+.fit-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.fit-size {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.fit-confidence {
+  font-size: 13px;
+  color: #666;
+}
+
+.fit-notes {
+  font-size: 11px;
+  color: #f57c00;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+/* Details */
+.repmate-details {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 16px;
+}
+
+.repmate-details details {
+  margin-bottom: 12px;
+}
+
+.repmate-details summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #007aff;
+  padding: 8px 0;
+}
+
+.repmate-details summary:hover {
+  color: #0066d6;
+}
+
+.repmate-details table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.repmate-details th,
+.repmate-details td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.repmate-details th {
+  font-weight: 600;
+  background: #f5f5f5;
+}
+
+.repmate-details tr.right td {
+  background: #e8f5e9;
+}
+
+.repmate-details tr.loose td,
+.repmate-details tr.baggy td {
+  background: #e3f2fd;
+}
+
+.repmate-details tr.tight td,
+.repmate-details tr.too_small td {
+  background: #ffebee;
+}
+
+.repmate-details pre {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Toast Notifications */
+.repmate-toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 10001;
+  transition: transform 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.repmate-toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+.repmate-toast.info {
+  background: #2196f3;
+  color: white;
+}
+
+.repmate-toast.warning {
+  background: #ff9800;
+  color: white;
+}
+
+.repmate-toast.error {
+  background: #f44336;
+  color: white;
+}
+
+.repmate-toast.success {
+  background: #4caf50;
+  color: white;
+}

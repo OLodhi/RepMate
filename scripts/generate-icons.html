@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RepMate Icon Generator</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    canvas { border: 1px solid #ccc; margin: 10px; }
+    .download-links a { margin-right: 10px; }
+  </style>
+</head>
+<body>
+  <h1>RepMate Icon Generator</h1>
+  <p>Right-click each canvas and "Save image as..." to download icons.</p>
+
+  <div>
+    <h3>16x16</h3>
+    <canvas id="icon16" width="16" height="16"></canvas>
+  </div>
+  <div>
+    <h3>48x48</h3>
+    <canvas id="icon48" width="48" height="48"></canvas>
+  </div>
+  <div>
+    <h3>128x128</h3>
+    <canvas id="icon128" width="128" height="128"></canvas>
+  </div>
+
+  <div class="download-links">
+    <a id="dl16" download="icon16.png">Download 16x16</a>
+    <a id="dl48" download="icon48.png">Download 48x48</a>
+    <a id="dl128" download="icon128.png">Download 128x128</a>
+  </div>
+
+  <script>
+    function drawIcon(canvas) {
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      const padding = size * 0.1;
+
+      // Background
+      ctx.fillStyle = '#007AFF';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, size, size, size * 0.2);
+      ctx.fill();
+
+      // Ruler icon
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = size * 0.08;
+      ctx.lineCap = 'round';
+
+      // Main ruler line
+      const rulerStart = padding * 2;
+      const rulerEnd = size - padding * 2;
+
+      ctx.beginPath();
+      ctx.moveTo(rulerStart, size * 0.5);
+      ctx.lineTo(rulerEnd, size * 0.5);
+      ctx.stroke();
+
+      // Tick marks
+      const tickCount = 4;
+      const tickSpacing = (rulerEnd - rulerStart) / (tickCount + 1);
+
+      for (let i = 1; i <= tickCount; i++) {
+        const x = rulerStart + tickSpacing * i;
+        const tickHeight = i % 2 === 0 ? size * 0.2 : size * 0.12;
+
+        ctx.beginPath();
+        ctx.moveTo(x, size * 0.5 - tickHeight / 2);
+        ctx.lineTo(x, size * 0.5 + tickHeight / 2);
+        ctx.stroke();
+      }
+    }
+
+    // Draw all icons
+    ['icon16', 'icon48', 'icon128'].forEach(id => {
+      const canvas = document.getElementById(id);
+      drawIcon(canvas);
+
+      // Set download link
+      const dlId = 'dl' + id.replace('icon', '');
+      document.getElementById(dlId).href = canvas.toDataURL('image/png');
+    });
+  </script>
+</body>
+</html>

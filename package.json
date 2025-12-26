@@ -1,0 +1,21 @@
+{
+  "name": "repmate",
+  "version": "1.0.0",
+  "description": "Yupoo size guide analyzer with size recommendations",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "yupoo",
+    "size-guide",
+    "chrome-extension",
+    "ocr"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "tesseract.js": "^5.0.4"
+  }
+}
