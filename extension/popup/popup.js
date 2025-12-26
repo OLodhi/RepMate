@@ -151,6 +151,11 @@ async function showRecommendations(ocrResult) {
   // Show raw OCR text
   rawOcrText.textContent = ocrResult.translatedText || ocrResult.rawText;
 
+  // Show detected size chart from OCR
+  if (ocrResult.structured && ocrResult.structured.rows) {
+    buildSizeChartFromOCR(ocrResult.structured);
+  }
+
   // Check if user has measurements
   if (!userMeasurements || Object.keys(userMeasurements).length === 0) {
     rightFitSize.textContent = '?';
@@ -162,6 +167,7 @@ async function showRecommendations(ocrResult) {
   }
 
   try {
+    console.log('[RepMate] Getting recommendations...');
     // Get recommendations from API
     const recommendations = await sendMessage({
       type: 'RECOMMEND_REQUEST',
@@ -172,6 +178,7 @@ async function showRecommendations(ocrResult) {
         baggyMargin: userSettings.baggyMargin || { type: 'size', value: 1 },
       },
     });
+    console.log('[RepMate] Recommendations:', recommendations);
 
     if (recommendations.success) {
       // Right fit
@@ -192,7 +199,7 @@ async function showRecommendations(ocrResult) {
         baggyFitDetail.textContent = 'Could not determine';
       }
 
-      // Build size chart table
+      // Update size chart table with fit info if available
       if (recommendations.allSizes && recommendations.allSizes.length > 0) {
         buildSizeChartTable(recommendations.allSizes, ocrResult.structured);
       }
@@ -212,6 +219,42 @@ async function showRecommendations(ocrResult) {
   }
 
   resultsSection.classList.remove('hidden');
+}
+
+/**
+ * Build size chart table from OCR structured data
+ */
+function buildSizeChartFromOCR(structured) {
+  const container = document.getElementById('sizeChartTable');
+
+  if (!structured.rows || structured.rows.length === 0) {
+    container.innerHTML = '<p>No structured size data detected</p>';
+    return;
+  }
+
+  // Get all keys from the rows
+  const allKeys = new Set();
+  structured.rows.forEach(row => {
+    Object.keys(row).forEach(key => allKeys.add(key));
+  });
+  const keys = Array.from(allKeys);
+
+  let html = '<table><tr>';
+  keys.forEach(key => {
+    html += `<th>${key.charAt(0).toUpperCase() + key.slice(1)}</th>`;
+  });
+  html += '</tr>';
+
+  structured.rows.forEach(row => {
+    html += '<tr>';
+    keys.forEach(key => {
+      html += `<td>${row[key] !== undefined ? row[key] : '-'}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</table>';
+  container.innerHTML = html;
 }
 
 /**
