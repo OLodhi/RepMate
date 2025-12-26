@@ -223,10 +223,51 @@ async function showRecommendations(ocrResult) {
 
 /**
  * Build size chart table from OCR structured data
+ * Supports multiple tables for combined top+bottom size guides
  */
 function buildSizeChartFromOCR(structured) {
   const container = document.getElementById('sizeChartTable');
 
+  // Check for multiple tables first
+  if (structured.tables && structured.tables.length > 0) {
+    let html = '';
+
+    structured.tables.forEach((table, index) => {
+      const garmentLabel = table.garmentType === 'bottom' ? 'Pants/Bottoms' : 'Top/Jacket';
+      const icon = table.garmentType === 'bottom' ? '👖' : '👕';
+
+      html += `<div class="table-section">`;
+      html += `<h4>${icon} ${garmentLabel}</h4>`;
+
+      // Get all keys from this table's rows
+      const allKeys = new Set();
+      table.rows.forEach(row => {
+        Object.keys(row).forEach(key => allKeys.add(key));
+      });
+      const keys = Array.from(allKeys);
+
+      html += '<table><tr>';
+      keys.forEach(key => {
+        html += `<th>${formatMeasurementName(key)}</th>`;
+      });
+      html += '</tr>';
+
+      table.rows.forEach(row => {
+        html += '<tr>';
+        keys.forEach(key => {
+          html += `<td>${row[key] !== undefined ? row[key] : '-'}</td>`;
+        });
+        html += '</tr>';
+      });
+
+      html += '</table></div>';
+    });
+
+    container.innerHTML = html;
+    return;
+  }
+
+  // Fallback to single table display
   if (!structured.rows || structured.rows.length === 0) {
     container.innerHTML = '<p>No structured size data detected</p>';
     return;
@@ -241,7 +282,7 @@ function buildSizeChartFromOCR(structured) {
 
   let html = '<table><tr>';
   keys.forEach(key => {
-    html += `<th>${key.charAt(0).toUpperCase() + key.slice(1)}</th>`;
+    html += `<th>${formatMeasurementName(key)}</th>`;
   });
   html += '</tr>';
 
@@ -255,6 +296,27 @@ function buildSizeChartFromOCR(structured) {
 
   html += '</table>';
   container.innerHTML = html;
+}
+
+/**
+ * Format measurement key names for display
+ */
+function formatMeasurementName(key) {
+  const nameMap = {
+    'size': 'Size',
+    'length': 'Length',
+    'pantsLength': 'Pants Length',
+    'chest': 'Chest',
+    'shoulder': 'Shoulder',
+    'sleeve': 'Sleeve',
+    'waist': 'Waist',
+    'hip': 'Hip',
+    'thigh': 'Thigh',
+    'legOpening': 'Leg Opening',
+    'inseam': 'Inseam',
+    'hem': 'Hem',
+  };
+  return nameMap[key] || key.charAt(0).toUpperCase() + key.slice(1);
 }
 
 /**

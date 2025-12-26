@@ -101,6 +101,7 @@ module.exports = async (req, res) => {
       structured: {
         headers: structured.headers,
         rows: structured.rows,
+        tables: structured.tables || [], // Multiple tables support
         garmentType,
       },
     });
