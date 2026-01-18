@@ -32,13 +32,17 @@
     <section id="resultsSection" class="results-section hidden">
       <h2>Size Recommendation</h2>
 
-      <div class="fit-cards">
-        <div class="fit-card right-fit">
+      <!-- Container for multiple garment type recommendations -->
+      <div id="recommendationsContainer"></div>
+
+      <!-- Fallback single recommendation (hidden when multi-table) -->
+      <div id="singleRecommendation" class="fit-cards">
+        <div class="fit-card right-fit" title="The size that best matches your measurements with ideal ease for comfort">
           <div class="fit-label">Right Fit</div>
           <div class="fit-size" id="rightFitSize">-</div>
           <div class="fit-detail" id="rightFitDetail"></div>
         </div>
-        <div class="fit-card baggy-fit">
+        <div class="fit-card baggy-fit" title="A larger size for a more relaxed, oversized look based on your baggy fit settings">
           <div class="fit-label">Baggy Fit</div>
           <div class="fit-size" id="baggyFitSize">-</div>
           <div class="fit-detail" id="baggyFitDetail"></div>
@@ -73,22 +77,22 @@
         <div class="measurement-group">
           <h3>Upper Body</h3>
           <div class="form-group">
-            <label for="chest">Chest</label>
+            <label for="chest" class="has-tooltip" title="Measure around the fullest part of your chest, under your arms">Chest <span class="tooltip-icon">?</span></label>
             <input type="number" id="chest" placeholder="98" step="0.5">
             <span class="unit">cm</span>
           </div>
           <div class="form-group">
-            <label for="shoulder">Shoulder</label>
+            <label for="shoulder" class="has-tooltip" title="Measure from shoulder edge to shoulder edge across your back">Shoulder <span class="tooltip-icon">?</span></label>
             <input type="number" id="shoulder" placeholder="44" step="0.5">
             <span class="unit">cm</span>
           </div>
           <div class="form-group">
-            <label for="sleeve">Sleeve</label>
+            <label for="sleeve" class="has-tooltip" title="Measure from shoulder seam to wrist with arm slightly bent">Sleeve <span class="tooltip-icon">?</span></label>
             <input type="number" id="sleeve" placeholder="62" step="0.5">
             <span class="unit">cm</span>
           </div>
           <div class="form-group">
-            <label for="topLength">Length</label>
+            <label for="topLength" class="has-tooltip" title="Measure from the highest point of your shoulder to your desired hem length">Length <span class="tooltip-icon">?</span></label>
             <input type="number" id="topLength" placeholder="70" step="0.5">
             <span class="unit">cm</span>
           </div>
@@ -97,22 +101,22 @@
         <div class="measurement-group">
           <h3>Lower Body</h3>
           <div class="form-group">
-            <label for="waist">Waist</label>
+            <label for="waist" class="has-tooltip" title="Measure around your natural waistline, at the narrowest part of your torso">Waist <span class="tooltip-icon">?</span></label>
             <input type="number" id="waist" placeholder="82" step="0.5">
             <span class="unit">cm</span>
           </div>
           <div class="form-group">
-            <label for="hip">Hip</label>
+            <label for="hip" class="has-tooltip" title="Measure around the fullest part of your hips and buttocks">Hip <span class="tooltip-icon">?</span></label>
             <input type="number" id="hip" placeholder="98" step="0.5">
             <span class="unit">cm</span>
           </div>
           <div class="form-group">
-            <label for="inseam">Inseam</label>
+            <label for="inseam" class="has-tooltip" title="Measure from your crotch to the bottom of your ankle bone">Inseam <span class="tooltip-icon">?</span></label>
             <input type="number" id="inseam" placeholder="78" step="0.5">
             <span class="unit">cm</span>
           </div>
           <div class="form-group">
-            <label for="thigh">Thigh</label>
+            <label for="thigh" class="has-tooltip" title="Measure around the fullest part of your thigh, just below the crotch">Thigh <span class="tooltip-icon">?</span></label>
             <input type="number" id="thigh" placeholder="56" step="0.5">
             <span class="unit">cm</span>
           </div>
@@ -123,19 +127,19 @@
     <!-- Settings -->
     <section id="settings" class="tab-content">
       <div class="form-group">
-        <label for="height">Height</label>
+        <label for="height" class="has-tooltip" title="Your height without shoes">Height <span class="tooltip-icon">?</span></label>
         <input type="number" id="height" placeholder="175" step="1">
         <span class="unit">cm</span>
       </div>
       <div class="form-group">
-        <label for="weight">Weight</label>
+        <label for="weight" class="has-tooltip" title="Your current weight">Weight <span class="tooltip-icon">?</span></label>
         <input type="number" id="weight" placeholder="70" step="1">
         <span class="unit">kg</span>
       </div>
 
-      <h3>Baggy Fit</h3>
+      <h3 class="has-tooltip" title="How much larger you want your 'baggy fit' recommendation to be">Baggy Fit <span class="tooltip-icon">?</span></h3>
       <div class="form-group">
-        <label for="baggyType">Method</label>
+        <label for="baggyType" class="has-tooltip" title="Choose how to calculate your baggy fit: by size steps, extra centimeters, or percentage">Method <span class="tooltip-icon">?</span></label>
         <select id="baggyType">
           <option value="size">+1 size</option>
           <option value="cm">Extra cm</option>

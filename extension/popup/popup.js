@@ -138,9 +138,12 @@ function initScanButton() {
 
 /**
  * Show recommendations from OCR result
+ * Supports multiple tables (e.g., Top + Bottom size guides)
  */
 async function showRecommendations(ocrResult) {
   const resultsSection = document.getElementById('resultsSection');
+  const recommendationsContainer = document.getElementById('recommendationsContainer');
+  const singleRecommendation = document.getElementById('singleRecommendation');
   const rightFitSize = document.getElementById('rightFitSize');
   const rightFitDetail = document.getElementById('rightFitDetail');
   const baggyFitSize = document.getElementById('baggyFitSize');
@@ -162,60 +165,146 @@ async function showRecommendations(ocrResult) {
     rightFitDetail.textContent = 'Set measurements first';
     baggyFitSize.textContent = '?';
     baggyFitDetail.textContent = 'Set measurements first';
+    singleRecommendation.classList.remove('hidden');
+    recommendationsContainer.innerHTML = '';
     resultsSection.classList.remove('hidden');
     return;
   }
 
-  try {
-    console.log('[RepMate] Getting recommendations...');
-    // Get recommendations from API
-    const recommendations = await sendMessage({
-      type: 'RECOMMEND_REQUEST',
-      data: {
-        sizeChart: ocrResult.structured,
-        userMeasurements: userMeasurements,
-        garmentType: ocrResult.structured.garmentType || 'top',
-        baggyMargin: userSettings.baggyMargin || { type: 'size', value: 1 },
-      },
-    });
-    console.log('[RepMate] Recommendations:', recommendations);
+  // Check if we have multiple tables (Top + Bottom)
+  const tables = ocrResult.structured?.tables || [];
 
-    if (recommendations.success) {
-      // Right fit
-      if (recommendations.rightFit) {
-        rightFitSize.textContent = recommendations.rightFit.size;
-        rightFitDetail.textContent = `${Math.round(recommendations.rightFit.confidence * 100)}% match`;
+  if (tables.length > 1) {
+    // Multiple tables - show recommendations for each
+    console.log(`[RepMate] Found ${tables.length} tables, getting recommendations for each...`);
+    singleRecommendation.classList.add('hidden');
+    recommendationsContainer.innerHTML = '';
+
+    for (const table of tables) {
+      const garmentType = table.garmentType || 'top';
+      const icon = garmentType === 'bottom' ? '👖' : '👕';
+      const label = garmentType === 'bottom' ? 'Pants/Bottoms' : 'Top/Jacket';
+
+      try {
+        // Get recommendations for this specific table
+        const recommendations = await sendMessage({
+          type: 'RECOMMEND_REQUEST',
+          data: {
+            sizeChart: { headers: table.headers, rows: table.rows },
+            userMeasurements: userMeasurements,
+            garmentType: garmentType,
+            baggyMargin: userSettings.baggyMargin || { type: 'size', value: 1 },
+          },
+        });
+
+        console.log(`[RepMate] ${label} recommendations:`, recommendations);
+
+        // Build HTML for this garment type
+        let html = `<div class="garment-recommendation">
+          <h3 class="garment-type">${icon} ${label}</h3>
+          <div class="fit-cards">`;
+
+        if (recommendations.success && recommendations.rightFit) {
+          html += `
+            <div class="fit-card right-fit">
+              <div class="fit-label">Right Fit</div>
+              <div class="fit-size">${recommendations.rightFit.size}</div>
+              <div class="fit-detail">${Math.round(recommendations.rightFit.confidence * 100)}% match</div>
+            </div>`;
+        } else {
+          html += `
+            <div class="fit-card right-fit">
+              <div class="fit-label">Right Fit</div>
+              <div class="fit-size">N/A</div>
+              <div class="fit-detail">Could not determine</div>
+            </div>`;
+        }
+
+        if (recommendations.success && recommendations.baggyFit) {
+          html += `
+            <div class="fit-card baggy-fit">
+              <div class="fit-label">Baggy Fit</div>
+              <div class="fit-size">${recommendations.baggyFit.size}</div>
+              <div class="fit-detail">${Math.round(recommendations.baggyFit.confidence * 100)}% match</div>
+            </div>`;
+        } else {
+          html += `
+            <div class="fit-card baggy-fit">
+              <div class="fit-label">Baggy Fit</div>
+              <div class="fit-size">N/A</div>
+              <div class="fit-detail">Could not determine</div>
+            </div>`;
+        }
+
+        html += `</div></div>`;
+        recommendationsContainer.innerHTML += html;
+
+      } catch (error) {
+        console.error(`Error getting ${label} recommendations:`, error);
+        recommendationsContainer.innerHTML += `
+          <div class="garment-recommendation">
+            <h3 class="garment-type">${icon} ${label}</h3>
+            <div class="fit-cards">
+              <div class="fit-card right-fit">
+                <div class="fit-label">Right Fit</div>
+                <div class="fit-size">?</div>
+                <div class="fit-detail">${error.message}</div>
+              </div>
+            </div>
+          </div>`;
+      }
+    }
+  } else {
+    // Single table - use original display
+    singleRecommendation.classList.remove('hidden');
+    recommendationsContainer.innerHTML = '';
+
+    try {
+      console.log('[RepMate] Getting recommendations...');
+      const recommendations = await sendMessage({
+        type: 'RECOMMEND_REQUEST',
+        data: {
+          sizeChart: ocrResult.structured,
+          userMeasurements: userMeasurements,
+          garmentType: ocrResult.structured.garmentType || 'top',
+          baggyMargin: userSettings.baggyMargin || { type: 'size', value: 1 },
+        },
+      });
+      console.log('[RepMate] Recommendations:', recommendations);
+
+      if (recommendations.success) {
+        if (recommendations.rightFit) {
+          rightFitSize.textContent = recommendations.rightFit.size;
+          rightFitDetail.textContent = `${Math.round(recommendations.rightFit.confidence * 100)}% match`;
+        } else {
+          rightFitSize.textContent = 'N/A';
+          rightFitDetail.textContent = 'Could not determine';
+        }
+
+        if (recommendations.baggyFit) {
+          baggyFitSize.textContent = recommendations.baggyFit.size;
+          baggyFitDetail.textContent = `${Math.round(recommendations.baggyFit.confidence * 100)}% match`;
+        } else {
+          baggyFitSize.textContent = 'N/A';
+          baggyFitDetail.textContent = 'Could not determine';
+        }
+
+        if (recommendations.allSizes && recommendations.allSizes.length > 0) {
+          buildSizeChartTable(recommendations.allSizes, ocrResult.structured);
+        }
       } else {
-        rightFitSize.textContent = 'N/A';
-        rightFitDetail.textContent = 'Could not determine';
+        rightFitSize.textContent = '?';
+        rightFitDetail.textContent = recommendations.error || 'Error';
+        baggyFitSize.textContent = '?';
+        baggyFitDetail.textContent = '';
       }
-
-      // Baggy fit
-      if (recommendations.baggyFit) {
-        baggyFitSize.textContent = recommendations.baggyFit.size;
-        baggyFitDetail.textContent = `${Math.round(recommendations.baggyFit.confidence * 100)}% match`;
-      } else {
-        baggyFitSize.textContent = 'N/A';
-        baggyFitDetail.textContent = 'Could not determine';
-      }
-
-      // Update size chart table with fit info if available
-      if (recommendations.allSizes && recommendations.allSizes.length > 0) {
-        buildSizeChartTable(recommendations.allSizes, ocrResult.structured);
-      }
-    } else {
+    } catch (error) {
+      console.error('Recommendation error:', error);
       rightFitSize.textContent = '?';
-      rightFitDetail.textContent = recommendations.error || 'Error';
+      rightFitDetail.textContent = error.message;
       baggyFitSize.textContent = '?';
       baggyFitDetail.textContent = '';
     }
-
-  } catch (error) {
-    console.error('Recommendation error:', error);
-    rightFitSize.textContent = '?';
-    rightFitDetail.textContent = error.message;
-    baggyFitSize.textContent = '?';
-    baggyFitDetail.textContent = '';
   }
 
   resultsSection.classList.remove('hidden');

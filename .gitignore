@@ -5,3 +5,15 @@ node_modules/
 .env
 .env.local
 .vercel
+
+# Ralph automation state files
+.call_count
+.circuit_breaker_*
+.claude_session_id
+.exit_signals
+.last_reset
+.ralph_session*
+.response_analysis
+status.json
+progress.json
+logs/

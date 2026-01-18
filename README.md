@@ -5,31 +5,36 @@ A Chrome extension that analyzes size guides on Yupoo pages and recommends sizes
 ## Features
 
 - **Automatic Size Guide Detection**: Identifies size charts on Yupoo product pages
-- **OCR Analysis**: Extracts measurements from images using Tesseract.js
+- **OCR Analysis**: Extracts measurements from images using OCR.space API
+- **Multi-Table Support**: Handles combined Top/Bottom size guides in a single image
 - **Chinese Translation**: Automatically translates Chinese size terms to English
 - **Smart Recommendations**: Suggests "Right Fit" and "Baggy Fit" sizes based on your measurements
-- **Customizable Settings**: Configure your preferred baggy fit margin
+- **Multiple Parsing Strategies**: Handles various size chart formats (standard, EU sizes, numeric sizes, inline formats)
+- **Customizable Settings**: Configure your preferred baggy fit margin (size steps, cm, or percentage)
 
 ## Project Structure
 
 ```
 RepMate/
 ├── api/                    # Vercel serverless functions
-│   ├── ocr.js             # OCR endpoint
+│   ├── ocr.js             # OCR endpoint (uses OCR.space API)
 │   ├── recommend.js       # Size recommendation endpoint
 │   └── translate.js       # Translation endpoint
 ├── lib/                    # Shared libraries
-│   ├── translations.js    # Chinese-English dictionary
-│   ├── sizeCalculator.js  # Size recommendation logic
-│   └── ocrParser.js       # OCR result parser
-├── extension/              # Chrome extension
+│   ├── translations.js    # Chinese-English dictionary & size utilities
+│   ├── sizeCalculator.js  # Size recommendation algorithm with ease allowances
+│   ├── sizeCalculator.test.js  # Tests for size calculator
+│   ├── ocrParser.js       # OCR result parser with multiple strategies
+│   └── ocrParser.test.js  # Tests for OCR parser
+├── extension/              # Chrome extension (Manifest v3)
 │   ├── manifest.json
-│   ├── popup/             # Extension popup UI
+│   ├── popup/             # Extension popup UI (HTML, CSS, JS)
 │   ├── content/           # Content scripts for Yupoo pages
 │   ├── background/        # Service worker
 │   └── icons/             # Extension icons
 ├── package.json
-└── vercel.json
+├── jest.config.js         # Jest test configuration
+└── vercel.json            # Vercel deployment config
 ```
 
 ## Setup
@@ -111,6 +116,42 @@ Run locally:
 ```bash
 npm run dev
 ```
+
+Run tests:
+```bash
+npm test
+```
+
+### Testing
+
+RepMate includes comprehensive test suites:
+
+- **ocrParser.test.js** (19 tests): Tests for size guide detection, multi-table parsing, size label extraction, and garment type detection
+- **sizeCalculator.test.js** (15 tests): Tests for ease allowances, fit scoring, recommendation calculation, and edge cases
+
+### Size Recommendation Algorithm
+
+The algorithm uses **ease allowances** to determine fit:
+
+| Measurement | Min | Ideal | Max |
+|-------------|-----|-------|-----|
+| Chest       | +4cm | +8cm | +16cm |
+| Shoulder    | +0cm | +2cm | +6cm |
+| Waist       | +2cm | +4cm | +10cm |
+| Hip         | +2cm | +6cm | +14cm |
+
+- **Tight**: Garment is smaller than body + min ease
+- **Right Fit**: Garment provides min to ideal ease
+- **Loose**: Garment provides ideal to max ease
+- **Oversized**: Garment exceeds max ease
+
+### Multi-Table Support
+
+When a size guide image contains both Top and Bottom measurements (common in Chinese stores), RepMate:
+1. Parses both tables separately
+2. Detects garment type for each table based on measurements
+3. Returns separate recommendations for tops and bottoms
+4. Displays both sets of recommendations in the popup
 
 ## License
 
