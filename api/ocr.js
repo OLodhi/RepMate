@@ -36,12 +36,18 @@ module.exports = async (req, res) => {
     } else {
       // Fetch the image and convert to base64
       // Use browser-like headers to avoid being blocked
+      // Extract subdomain from image URL for proper referer
+      const urlMatch = imageUrl.match(/photo\.yupoo\.com\/([^\/]+)/);
+      const seller = urlMatch ? urlMatch[1] : 'x';
+      const referer = `https://${seller}.x.yupoo.com/`;
+
       const imageResponse = await fetch(imageUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.9',
-          'Referer': 'https://x.yupoo.com/',
+          'Referer': referer,
+          'Origin': referer,
         },
       });
       if (!imageResponse.ok) {
