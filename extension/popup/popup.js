@@ -1,18 +1,18 @@
 /**
  * RepMate Popup Script
- * Handles page scanning, size recommendations, and user measurements
+ * Handles page scanning, size recommendations, and state persistence
  */
 
 // State
 let currentImages = [];
 let userMeasurements = {};
 let userSettings = {};
+let currentPageUrl = '';
 
 document.addEventListener('DOMContentLoaded', () => {
-  initTabs();
-  initBaggySettings();
-  loadSavedData();
-  initSaveButton();
+  initSettingsButton();
+  initClearResultsButton();
+  loadMeasurementsFromStorage();
   initScanButton();
   checkCurrentPage();
 });
@@ -27,6 +27,7 @@ async function checkCurrentPage() {
 
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    currentPageUrl = tab.url || '';
 
     if (tab.url && tab.url.includes('yupoo.com')) {
       // It's a Yupoo page
@@ -36,6 +37,9 @@ async function checkCurrentPage() {
       `;
       scanSection.classList.remove('hidden');
       notYupooSection.classList.add('hidden');
+
+      // Check for cached results for this page
+      await loadCachedResults();
 
       // Get images from the page
       chrome.tabs.sendMessage(tab.id, { type: 'GET_PAGE_IMAGES' }, (response) => {
@@ -59,6 +63,107 @@ async function checkCurrentPage() {
       <span class="status-dot inactive"></span>
       <span class="status-text">Unable to detect page</span>
     `;
+  }
+}
+
+/**
+ * Load cached scan results from chrome.storage.session
+ */
+async function loadCachedResults() {
+  if (!currentPageUrl) return;
+
+  try {
+    const cacheKey = getCacheKey(currentPageUrl);
+    const data = await chrome.storage.session.get(cacheKey);
+
+    if (data[cacheKey]) {
+      console.log('[RepMate] Found cached results for this page');
+      const cached = data[cacheKey];
+
+      // Restore the results
+      await displayCachedResults(cached);
+
+      // Show clear results button
+      document.getElementById('clearResultsBtn').classList.remove('hidden');
+
+      // Update scan status
+      const scanStatus = document.getElementById('scanStatus');
+      scanStatus.classList.remove('hidden', 'error');
+      scanStatus.classList.add('success');
+      scanStatus.textContent = 'Results loaded from cache';
+    }
+  } catch (error) {
+    console.error('[RepMate] Error loading cached results:', error);
+  }
+}
+
+/**
+ * Save scan results to chrome.storage.session
+ */
+async function cacheResults(ocrResult, recommendations) {
+  if (!currentPageUrl) return;
+
+  try {
+    const cacheKey = getCacheKey(currentPageUrl);
+    const cacheData = {
+      ocrResult: ocrResult,
+      recommendations: recommendations,
+      timestamp: Date.now()
+    };
+
+    await chrome.storage.session.set({ [cacheKey]: cacheData });
+    console.log('[RepMate] Results cached for this page');
+
+    // Show clear results button
+    document.getElementById('clearResultsBtn').classList.remove('hidden');
+  } catch (error) {
+    console.error('[RepMate] Error caching results:', error);
+  }
+}
+
+/**
+ * Clear cached results for current page
+ */
+async function clearCachedResults() {
+  if (!currentPageUrl) return;
+
+  try {
+    const cacheKey = getCacheKey(currentPageUrl);
+    await chrome.storage.session.remove(cacheKey);
+    console.log('[RepMate] Cached results cleared');
+
+    // Hide results section
+    document.getElementById('resultsSection').classList.add('hidden');
+
+    // Hide clear results button
+    document.getElementById('clearResultsBtn').classList.add('hidden');
+
+    // Reset scan status
+    const scanStatus = document.getElementById('scanStatus');
+    scanStatus.classList.add('hidden');
+    scanStatus.textContent = '';
+
+    showStatus('Results cleared', 'success');
+  } catch (error) {
+    console.error('[RepMate] Error clearing cached results:', error);
+  }
+}
+
+/**
+ * Get cache key for a URL
+ */
+function getCacheKey(url) {
+  return `scanResults_${encodeURIComponent(url)}`;
+}
+
+/**
+ * Display cached results
+ */
+async function displayCachedResults(cached) {
+  const { ocrResult } = cached;
+
+  if (ocrResult) {
+    await showRecommendations(ocrResult);
   }
 }
 
@@ -124,8 +229,9 @@ function initScanButton() {
         scanStatus.classList.add('success');
         scanStatus.textContent = `Size guide found! (scanned ${scannedCount} of ${prioritizedImages.length} images)`;
 
-        // Get recommendations
+        // Get recommendations and cache results
         await showRecommendations(sizeGuideFound);
+        await cacheResults(sizeGuideFound, null);
       } else {
         scanStatus.classList.add('error');
         scanStatus.textContent = `No size guide found (scanned all ${scannedCount} images)`;
@@ -463,140 +569,73 @@ function sendMessage(message) {
 }
 
 /**
- * Initialize tab switching
+ * Load measurements from chrome.storage.local
  */
-function initTabs() {
-  const tabs = document.querySelectorAll('.tab');
-  const contents = document.querySelectorAll('.tab-content');
+async function loadMeasurementsFromStorage() {
+  try {
+    const data = await chrome.storage.local.get(['userMeasurements', 'baggySettings']);
 
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      contents.forEach(c => c.classList.remove('active'));
+    if (data.userMeasurements) {
+      userMeasurements = data.userMeasurements;
+      updateMeasurementsSummary();
+    }
 
-      tab.classList.add('active');
-      const targetId = tab.dataset.tab;
-      document.getElementById(targetId).classList.add('active');
-    });
+    if (data.baggySettings) {
+      userSettings.baggyMargin = {
+        type: data.baggySettings.type || 'size',
+        value: data.baggySettings.value || 1
+      };
+    }
+  } catch (error) {
+    console.error('[RepMate] Error loading measurements:', error);
+  }
+}
+
+/**
+ * Update measurements summary display
+ */
+function updateMeasurementsSummary() {
+  const summaryEl = document.getElementById('measurementsSummary');
+
+  if (!userMeasurements || Object.keys(userMeasurements).length === 0) {
+    summaryEl.textContent = 'Not configured';
+    summaryEl.classList.add('not-configured');
+    return;
+  }
+
+  // Count how many measurements are set
+  const measurementCount = Object.values(userMeasurements).filter(v => v !== null && v !== undefined).length;
+
+  if (measurementCount === 0) {
+    summaryEl.textContent = 'Not configured';
+    summaryEl.classList.add('not-configured');
+  } else {
+    summaryEl.textContent = `${measurementCount} measurements set`;
+    summaryEl.classList.remove('not-configured');
+  }
+}
+
+/**
+ * Initialize settings button
+ */
+function initSettingsButton() {
+  const settingsBtn = document.getElementById('settingsBtn');
+
+  settingsBtn.addEventListener('click', () => {
+    // Open settings page in a new tab
+    chrome.runtime.openOptionsPage();
   });
 }
 
 /**
- * Initialize baggy fit settings UI
+ * Initialize clear results button
  */
-function initBaggySettings() {
-  const baggyType = document.getElementById('baggyType');
-  const baggyValue = document.getElementById('baggyValue');
-  const baggyUnit = document.getElementById('baggyUnit');
+function initClearResultsButton() {
+  const clearResultsBtn = document.getElementById('clearResultsBtn');
 
-  baggyType.addEventListener('change', () => {
-    switch (baggyType.value) {
-      case 'size':
-        baggyValue.value = '1';
-        baggyUnit.textContent = 'size(s)';
-        break;
-      case 'cm':
-        baggyValue.value = '5';
-        baggyUnit.textContent = 'cm';
-        break;
-      case 'percent':
-        baggyValue.value = '10';
-        baggyUnit.textContent = '%';
-        break;
-    }
+  clearResultsBtn.addEventListener('click', () => {
+    clearCachedResults();
   });
-}
-
-/**
- * Load saved measurements and settings
- */
-function loadSavedData() {
-  chrome.runtime.sendMessage({ type: 'GET_MEASUREMENTS' }, (response) => {
-    if (response && response.measurements) {
-      userMeasurements = response.measurements;
-      const m = response.measurements;
-
-      // Populate form fields
-      if (m.chest) document.getElementById('chest').value = m.chest;
-      if (m.shoulder) document.getElementById('shoulder').value = m.shoulder;
-      if (m.sleeve) document.getElementById('sleeve').value = m.sleeve;
-      if (m.topLength) document.getElementById('topLength').value = m.topLength;
-      if (m.waist) document.getElementById('waist').value = m.waist;
-      if (m.hip) document.getElementById('hip').value = m.hip;
-      if (m.inseam) document.getElementById('inseam').value = m.inseam;
-      if (m.thigh) document.getElementById('thigh').value = m.thigh;
-      if (m.height) document.getElementById('height').value = m.height;
-      if (m.weight) document.getElementById('weight').value = m.weight;
-    }
-
-    if (response && response.settings) {
-      userSettings = response.settings;
-      const s = response.settings;
-
-      if (s.baggyMargin) {
-        document.getElementById('baggyType').value = s.baggyMargin.type;
-        document.getElementById('baggyValue').value = s.baggyMargin.value;
-        const unitLabels = { size: 'size(s)', cm: 'cm', percent: '%' };
-        document.getElementById('baggyUnit').textContent = unitLabels[s.baggyMargin.type] || 'size(s)';
-      }
-    }
-  });
-}
-
-/**
- * Initialize save button
- */
-function initSaveButton() {
-  const saveBtn = document.getElementById('saveBtn');
-
-  saveBtn.addEventListener('click', () => {
-    const measurements = {
-      chest: parseFloatOrNull(document.getElementById('chest').value),
-      shoulder: parseFloatOrNull(document.getElementById('shoulder').value),
-      sleeve: parseFloatOrNull(document.getElementById('sleeve').value),
-      topLength: parseFloatOrNull(document.getElementById('topLength').value),
-      waist: parseFloatOrNull(document.getElementById('waist').value),
-      hip: parseFloatOrNull(document.getElementById('hip').value),
-      inseam: parseFloatOrNull(document.getElementById('inseam').value),
-      thigh: parseFloatOrNull(document.getElementById('thigh').value),
-      height: parseFloatOrNull(document.getElementById('height').value),
-      weight: parseFloatOrNull(document.getElementById('weight').value),
-    };
-
-    // Remove null values
-    Object.keys(measurements).forEach(key => {
-      if (measurements[key] === null) delete measurements[key];
-    });
-
-    const settings = {
-      baggyMargin: {
-        type: document.getElementById('baggyType').value,
-        value: parseInt(document.getElementById('baggyValue').value, 10),
-      },
-      unit: 'cm',
-    };
-
-    // Update local state
-    userMeasurements = measurements;
-    userSettings = settings;
-
-    // Save to storage
-    chrome.runtime.sendMessage({
-      type: 'SAVE_MEASUREMENTS',
-      data: { measurements, settings },
-    }, (response) => {
-      if (response && response.success) {
-        showStatus('Saved!', 'success');
-      } else {
-        showStatus('Failed to save', 'error');
-      }
-    });
-  });
-}
-
-function parseFloatOrNull(value) {
-  const num = parseFloat(value);
-  return isNaN(num) ? null : num;
 }
 
 function showStatus(message, type) {

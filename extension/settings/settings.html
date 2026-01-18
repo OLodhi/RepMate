@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RepMate Settings</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <button id="backBtn" class="back-btn" title="Back to popup">
+        <span class="back-arrow">←</span>
+      </button>
+      <h1>Settings</h1>
+    </header>
+
+    <!-- Body Measurements Section -->
+    <section class="settings-section">
+      <h2>Body Measurements</h2>
+      <p class="section-description">Enter your body measurements for accurate size recommendations.</p>
+
+      <div class="measurements-grid">
+        <div class="measurement-group">
+          <h3>Upper Body</h3>
+          <div class="form-group">
+            <label for="chest" class="has-tooltip" title="Measure around the fullest part of your chest, under your arms">Chest</label>
+            <input type="number" id="chest" placeholder="98" step="0.5">
+            <span class="unit">cm</span>
+          </div>
+          <div class="form-group">
+            <label for="shoulder" class="has-tooltip" title="Measure from shoulder edge to shoulder edge across your back">Shoulder</label>
+            <input type="number" id="shoulder" placeholder="44" step="0.5">
+            <span class="unit">cm</span>
+          </div>
+          <div class="form-group">
+            <label for="sleeve" class="has-tooltip" title="Measure from shoulder seam to wrist with arm slightly bent">Sleeve</label>
+            <input type="number" id="sleeve" placeholder="62" step="0.5">
+            <span class="unit">cm</span>
+          </div>
+          <div class="form-group">
+            <label for="topLength" class="has-tooltip" title="Measure from the highest point of your shoulder to your desired hem length">Length</label>
+            <input type="number" id="topLength" placeholder="70" step="0.5">
+            <span class="unit">cm</span>
+          </div>
+        </div>
+
+        <div class="measurement-group">
+          <h3>Lower Body</h3>
+          <div class="form-group">
+            <label for="waist" class="has-tooltip" title="Measure around your natural waistline, at the narrowest part of your torso">Waist</label>
+            <input type="number" id="waist" placeholder="82" step="0.5">
+            <span class="unit">cm</span>
+          </div>
+          <div class="form-group">
+            <label for="hip" class="has-tooltip" title="Measure around the fullest part of your hips and buttocks">Hip</label>
+            <input type="number" id="hip" placeholder="98" step="0.5">
+            <span class="unit">cm</span>
+          </div>
+          <div class="form-group">
+            <label for="inseam" class="has-tooltip" title="Measure from your crotch to the bottom of your ankle bone">Inseam</label>
+            <input type="number" id="inseam" placeholder="78" step="0.5">
+            <span class="unit">cm</span>
+          </div>
+          <div class="form-group">
+            <label for="thigh" class="has-tooltip" title="Measure around the fullest part of your thigh, just below the crotch">Thigh</label>
+            <input type="number" id="thigh" placeholder="56" step="0.5">
+            <span class="unit">cm</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Physical Stats Section -->
+    <section class="settings-section">
+      <h2>Physical Stats</h2>
+      <div class="form-group">
+        <label for="height" class="has-tooltip" title="Your height without shoes">Height</label>
+        <input type="number" id="height" placeholder="175" step="1">
+        <span class="unit">cm</span>
+      </div>
+      <div class="form-group">
+        <label for="weight" class="has-tooltip" title="Your current weight">Weight</label>
+        <input type="number" id="weight" placeholder="70" step="1">
+        <span class="unit">kg</span>
+      </div>
+    </section>
+
+    <!-- Baggy Fit Settings Section -->
+    <section class="settings-section">
+      <h2 class="has-tooltip" title="How much larger you want your 'baggy fit' recommendation to be">Baggy Fit Preferences</h2>
+      <div class="form-group">
+        <label for="baggyType" class="has-tooltip" title="Choose how to calculate your baggy fit: by size steps, extra centimeters, or percentage">Method</label>
+        <select id="baggyType">
+          <option value="size">+1 size</option>
+          <option value="cm">Extra cm</option>
+          <option value="percent">% larger</option>
+        </select>
+      </div>
+      <div class="form-group" id="baggyValueGroup">
+        <label for="baggyValue">Value</label>
+        <input type="number" id="baggyValue" value="1" min="1" max="20" step="1">
+        <span class="unit" id="baggyUnit">size(s)</span>
+      </div>
+    </section>
+
+    <footer>
+      <button id="saveBtn" class="btn primary">Save Settings</button>
+      <div id="status" class="status"></div>
+    </footer>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

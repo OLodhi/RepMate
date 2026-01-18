@@ -738,3 +738,79 @@ footer .btn {
 h3.has-tooltip::after {
   width: 200px;
 }
+
+/* Measurements Status Section */
+.measurements-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: white;
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+}
+
+.measurements-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.measurements-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.measurements-summary {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--success);
+}
+
+.measurements-summary.not-configured {
+  color: var(--warning);
+}
+
+.settings-btn {
+  padding: 8px 14px;
+  font-size: 12px;
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border: 1.5px solid var(--gray-200);
+}
+
+.settings-btn:hover {
+  background: var(--gray-200);
+  border-color: var(--gray-300);
+}
+
+/* Footer adjustments */
+footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gray-200);
+}
+
+footer .btn.secondary {
+  padding: 8px 14px;
+  font-size: 12px;
+}
+
+#clearResultsBtn {
+  background: var(--error-light);
+  color: var(--error);
+  border-color: var(--error);
+}
+
+#clearResultsBtn:hover {
+  background: var(--error);
+  color: white;
+}
