@@ -37,30 +37,31 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   color: var(--gray-800);
   background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
-  width: 380px;
-  min-height: 500px;
+  min-height: 100vh;
 }
 
 .container {
-  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
 }
 
 /* Header */
 header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 0 16px;
-  margin-bottom: 16px;
-  position: relative;
+  gap: 16px;
+  padding: 16px 0 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--gray-200);
 }
 
 header h1 {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 800;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   -webkit-background-clip: text;
@@ -69,22 +70,12 @@ header h1 {
   letter-spacing: -0.5px;
 }
 
-header::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--gray-200);
-}
-
 .back-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: none;
   background: var(--gray-100);
   border-radius: var(--radius-sm);
@@ -99,7 +90,7 @@ header::after {
 }
 
 .back-arrow {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: bold;
 }
 
@@ -107,67 +98,75 @@ header::after {
 .settings-section {
   background: white;
   border-radius: var(--radius-lg);
-  padding: 16px;
-  margin-bottom: 14px;
+  padding: 24px;
+  margin-bottom: 20px;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--gray-200);
 }
 
 .settings-section h2 {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--gray-800);
   margin-bottom: 8px;
 }
 
 .section-description {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--gray-500);
-  margin-bottom: 14px;
+  margin-bottom: 20px;
 }
 
 /* Measurements Grid */
 .measurements-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 32px;
+}
+
+.measurement-group {
+  display: flex;
+  flex-direction: column;
 }
 
 .measurement-group h3 {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--gray-400);
-  margin-bottom: 10px;
+  margin-bottom: 16px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 /* Form Groups */
 .form-group {
-  display: flex;
+  display: grid;
+  grid-template-columns: 70px 1fr 40px;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
 }
 
 .form-group label {
-  flex: 0 0 60px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--gray-600);
 }
 
 .form-group input,
 .form-group select {
-  flex: 1;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-sm);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
-  min-width: 0;
   transition: var(--transition);
   background: var(--gray-50);
+  width: 100%;
 }
 
 .form-group input:focus,
@@ -179,18 +178,17 @@ header::after {
 }
 
 .form-group .unit {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--gray-400);
-  flex: 0 0 36px;
   font-weight: 500;
 }
 
 /* Buttons */
 .btn {
-  padding: 12px 20px;
+  padding: 14px 24px;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   transition: var(--transition);
@@ -216,16 +214,16 @@ header::after {
 
 /* Footer */
 footer {
-  margin-top: 16px;
+  margin-top: 24px;
 }
 
 .status {
-  margin-top: 10px;
+  margin-top: 12px;
   text-align: center;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--gray-500);
-  min-height: 18px;
+  min-height: 20px;
 }
 
 .status.success {
@@ -248,15 +246,15 @@ footer {
   left: 0;
   top: 100%;
   margin-top: 6px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   background: var(--gray-800);
   color: white;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.4;
   border-radius: var(--radius-sm);
   white-space: normal;
-  width: 180px;
+  width: 220px;
   z-index: 100;
   opacity: 0;
   visibility: hidden;
@@ -287,20 +285,37 @@ footer {
   transform: translateY(0);
 }
 
+/* Responsive */
+@media (max-width: 500px) {
+  .container {
+    padding: 16px;
+  }
+
+  .measurements-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .form-group {
+    grid-template-columns: 65px 1fr 35px;
+    gap: 8px;
+  }
+}
+
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
   background: var(--gray-100);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--gray-300);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
