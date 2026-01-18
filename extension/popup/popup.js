@@ -88,15 +88,20 @@ function initScanButton() {
         throw new Error('No images found on page');
       }
 
-      scanStatus.textContent = `Found ${images.length} images. Analyzing...`;
+      console.log(`[RepMate] Total images found: ${images.length}`);
+      scanStatus.textContent = `Found ${images.length} images. Prioritizing likely size guides...`;
 
-      // Scan each image for size guide (limit to first 10 to avoid overload)
-      const imagesToScan = images.slice(0, 10);
+      // Prioritize images that are likely to be size guides based on URL patterns
+      const prioritizedImages = prioritizeImagesForSizeGuide(images);
+      console.log(`[RepMate] Prioritized order: ${prioritizedImages.length} images`);
+
       let sizeGuideFound = null;
+      let scannedCount = 0;
 
-      for (let i = 0; i < imagesToScan.length; i++) {
-        const img = imagesToScan[i];
-        scanStatus.textContent = `Scanning image ${i + 1} of ${imagesToScan.length}...`;
+      for (let i = 0; i < prioritizedImages.length; i++) {
+        const img = prioritizedImages[i];
+        scannedCount++;
+        scanStatus.textContent = `Scanning image ${scannedCount} of ${prioritizedImages.length}...`;
 
         try {
           const ocrResult = await sendMessage({
@@ -106,23 +111,24 @@ function initScanButton() {
 
           if (ocrResult.success && ocrResult.isSizeGuide) {
             sizeGuideFound = ocrResult;
+            console.log(`[RepMate] Size guide found at image ${scannedCount}`);
             break; // Found a size guide, stop scanning
           }
         } catch (err) {
-          console.log(`Image ${i + 1} scan failed:`, err);
+          console.log(`[RepMate] Image ${scannedCount} scan failed:`, err.message);
           // Continue to next image
         }
       }
 
       if (sizeGuideFound) {
         scanStatus.classList.add('success');
-        scanStatus.textContent = 'Size guide found!';
+        scanStatus.textContent = `Size guide found! (scanned ${scannedCount} of ${prioritizedImages.length} images)`;
 
         // Get recommendations
         await showRecommendations(sizeGuideFound);
       } else {
         scanStatus.classList.add('error');
-        scanStatus.textContent = 'No size guide found in images';
+        scanStatus.textContent = `No size guide found (scanned all ${scannedCount} images)`;
       }
 
     } catch (error) {
@@ -601,4 +607,56 @@ function showStatus(message, type) {
     status.className = 'status';
     status.textContent = '';
   }, 2000);
+}
+
+/**
+ * Prioritize images that are likely to be size guides
+ * Returns all images sorted by likelihood (most likely first)
+ */
+function prioritizeImagesForSizeGuide(images) {
+  // Keywords that suggest an image might be a size guide
+  const sizeGuideKeywords = [
+    'size', 'sizing', 'chart', 'guide', 'measure', 'dimension',
+    '尺码', '尺寸', '码数', '测量', '身高', '体重', // Chinese size terms
+    'cm', 'inch', 'measurement'
+  ];
+
+  // Score each image based on likelihood of being a size guide
+  const scoredImages = images.map(img => {
+    let score = 0;
+    const urlLower = img.src.toLowerCase();
+
+    // Check URL for size-related keywords
+    sizeGuideKeywords.forEach(keyword => {
+      if (urlLower.includes(keyword.toLowerCase())) {
+        score += 10;
+      }
+    });
+
+    // Size guides are often later in the image list (after product photos)
+    // Give slight preference to images in the middle/end
+    const positionBonus = images.indexOf(img) / images.length * 2;
+    score += positionBonus;
+
+    // Size guide images often have specific aspect ratios (taller than wide, or very wide)
+    if (img.width && img.height) {
+      const aspectRatio = img.width / img.height;
+      // Charts are often wide (aspect > 1.5) or tall (aspect < 0.7)
+      if (aspectRatio > 1.5 || aspectRatio < 0.7) {
+        score += 3;
+      }
+    }
+
+    return { ...img, score };
+  });
+
+  // Sort by score descending (most likely size guides first)
+  scoredImages.sort((a, b) => b.score - a.score);
+
+  console.log('[RepMate] Image scores:', scoredImages.map(img => ({
+    src: img.src.substring(img.src.lastIndexOf('/') + 1),
+    score: img.score.toFixed(1)
+  })));
+
+  return scoredImages;
 }

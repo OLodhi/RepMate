@@ -11,36 +11,74 @@
   /**
    * Get all potential size guide images from the page
    * Converts thumbnail URLs to full-resolution URLs (like Python script does)
+   * Checks multiple sources for lazy-loaded images
    */
   function getPageImages() {
     const images = document.querySelectorAll('img');
     const yupooImages = [];
+    const seenUrls = new Set();
+
+    console.log(`[RepMate] Total <img> elements on page: ${images.length}`);
 
     images.forEach(img => {
-      let src = img.src || img.dataset.src || img.dataset.originSrc || '';
+      // Check multiple possible image sources (for lazy loading)
+      const possibleSources = [
+        img.src,
+        img.dataset.src,
+        img.dataset.originSrc,
+        img.dataset.original,
+        img.dataset.lazySrc,
+        img.getAttribute('data-src'),
+        img.getAttribute('data-original'),
+        img.getAttribute('data-lazy-src'),
+      ].filter(Boolean);
 
-      // Only include Yupoo product photos (not logos, icons, etc.)
-      if (src.includes('photo.yupoo.com')) {
-        // Skip tiny images
-        const width = img.naturalWidth || img.offsetWidth || 0;
-        const height = img.naturalHeight || img.offsetHeight || 0;
+      for (let src of possibleSources) {
+        // Only include Yupoo product photos (not logos, icons, etc.)
+        if (src.includes('photo.yupoo.com') && !seenUrls.has(src)) {
+          // Skip tiny images (but be more lenient - some size guides start small)
+          const width = img.naturalWidth || img.offsetWidth || 200;
+          const height = img.naturalHeight || img.offsetHeight || 200;
 
-        if (width >= 100 && height >= 100) {
           // Convert thumbnail URLs to full-resolution URLs
           // This matches what the Python script does for better OCR accuracy
           src = src.replace(/\/(small|thumb|square|medium)\./gi, '/big.');
           src = src.replace(/_small\.|_thumb\.|_min\./gi, '.');
 
+          // Deduplicate by normalized URL
+          if (!seenUrls.has(src)) {
+            seenUrls.add(src);
+            yupooImages.push({
+              src: src,
+              width: width,
+              height: height,
+            });
+          }
+        }
+      }
+    });
+
+    // Also check for images in anchor tags that might link to full images
+    const anchors = document.querySelectorAll('a[href*="photo.yupoo.com"]');
+    anchors.forEach(anchor => {
+      let src = anchor.href;
+      if (src.includes('photo.yupoo.com') && !seenUrls.has(src)) {
+        // Convert to big version
+        src = src.replace(/\/(small|thumb|square|medium)\./gi, '/big.');
+        src = src.replace(/_small\.|_thumb\.|_min\./gi, '.');
+
+        if (!seenUrls.has(src)) {
+          seenUrls.add(src);
           yupooImages.push({
             src: src,
-            width: width,
-            height: height,
+            width: 800, // Assume reasonable size for linked images
+            height: 800,
           });
         }
       }
     });
 
-    console.log(`[RepMate] Found ${yupooImages.length} Yupoo images`);
+    console.log(`[RepMate] Found ${yupooImages.length} unique Yupoo images`);
     return yupooImages;
   }
 
