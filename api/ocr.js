@@ -55,7 +55,11 @@ module.exports = async (req, res) => {
       }
       const imageBuffer = await imageResponse.arrayBuffer();
       const base64 = Buffer.from(imageBuffer).toString('base64');
-      base64Data = `data:image/jpeg;base64,${base64}`;
+
+      // Detect content type from response or URL
+      const contentType = imageResponse.headers.get('content-type') ||
+        (imageUrl.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg');
+      base64Data = `data:${contentType};base64,${base64}`;
     }
 
     // Build form data for OCR.space API
