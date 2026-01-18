@@ -623,7 +623,7 @@ function initSettingsButton() {
 
   settingsBtn.addEventListener('click', () => {
     // Open settings page in a new tab
-    chrome.runtime.openOptionsPage();
+    chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') });
   });
 }
 
